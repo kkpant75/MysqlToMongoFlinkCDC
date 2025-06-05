@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeepere2e
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafkae2e
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafkae2e:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysqle2e
+    ports:
+        - "3316:3306"
+    environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: testdb
+        MYSQL_USER: user
+        MYSQL_PASSWORD: password
+    command:
+        --server-id=223344
+        --log-bin=mysql-bin
+        --binlog-format=ROW
+        --binlog-row-image=FULL
+        --gtid-mode=OFF
+        --enforce-gtid-consistency=OFF
+        --log_replica_updates=ON
+    volumes:
+        - mysql_data:/var/lib/mysql
+
+  mongo:
+    image: mongo:7
+    container_name: mongoe2e
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  connect:
+    image: confluentinc/cp-kafka-connect:7.6.0
+    container_name: connecte2e
+    depends_on:
+      - kafka
+      - mysql
+      - mongo
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafkae2e:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "kafka-connect-group"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connecte2e
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: false
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: false
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+    volumes:
+      - ./plugins:/etc/kafka-connect/jars
+
+  flink-jobmanager:
+    #image: flink:1.17-scala_2.12
+    build: .
+    container_name: flink-jobmanager
+    command: jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+    volumes:
+      - ./flink-app:/opt/flink/usrlib
+
+  flink-taskmanager:
+    #image: flink:1.17-scala_2.12
+    build: .
+    container_name: flink-taskmanager
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+    volumes:
+      - ./flink-app:/opt/flink/usrlib
+      
+  db2:
+    image: ibmcom/db2:11.5.8.0
+    container_name: db2e2e
+    privileged: true
+    ports:
+      - "50000:50000"
+    environment:
+      LICENSE: accept
+      DB2INST1_PASSWORD: password
+      DBNAME: testdb
+    volumes:
+      - db2_data:/database
+    healthcheck:
+      test: ["CMD", "su", "-", "db2inst1", "-c", "db2 connect to testdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+      
+volumes:
+  mongo_data:
+  mysql_data:
+  db2_data:
