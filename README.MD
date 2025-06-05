@@ -15,6 +15,7 @@
 
 # Directory Structure
 D:\DockerPrograms\MysqlToMongoFlinkCDC>tree
+
 ├───flink-app
 
 ├───images
