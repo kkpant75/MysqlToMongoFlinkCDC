@@ -16,9 +16,13 @@
 # Directory Structure
 D:\DockerPrograms\MysqlToMongoFlinkCDC>tree
 ├───flink-app
+
 ├───images
+
 ├───jars
+
 └───plugins
+
 
 # Docker File To Build Flink Job and Task
 ```
