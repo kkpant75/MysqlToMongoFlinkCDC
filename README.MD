@@ -1,5 +1,5 @@
 # Creating Flink Job For Mysql Source And Mongo Sink  - Using Flink SQL
-![Flink SQL](https://github.com/kkpant75/MysqlToMongoFlinkCDC/FlinkSQL.jpg)
+![Flink SQL](https://github.com/kkpant75/MysqlToMongoFlinkCDC/blob/main/images/FlinkSQL.jpg)
 # Preequisites: *Must have knowlede on below systems/tools*
 - Docker/Kubernetese Knowledge
     - Docker Compose
@@ -235,7 +235,7 @@ FROM employee_mysql;
 - Running Jobs
 - Completed Jobs
 
-![Flink Job Server](https://github.com/kkpant75/MysqlToMongoFlinkCDC/FlinkPortal.jpg)
+![Flink Job Server](https://github.com/kkpant75/MysqlToMongoFlinkCDC/blob/main/images/FlinkPortal.png)
 # Mysql To MongoDB Batch Process
 ```
 # Create MYSQL Flink Source
