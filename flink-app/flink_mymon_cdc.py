@@ -18,7 +18,7 @@ CREATE TABLE employee_mysql_cdc (
   'username' = 'user',
   'password' = 'password',
   'database-name' = 'company',
-  'table-name' = 'employee_old'
+  'table-name' = 'employee'
 );
 """)
 
