@@ -24,6 +24,7 @@ D:\DockerPrograms\MysqlToMongoFlinkCDC>tree
 
 └───plugins
 
+# 
 
 # Docker File To Build Flink Job and Task
 ```
@@ -201,6 +202,12 @@ GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'u
 FLUSH PRIVILEGES;
 ```
 # Test Environment
+
+Get Inside `flink-jobmanager` container using below command
+```
+docker exec -it flink-jobmanager bash
+```
+### Steps
 ```
 # Create Flink Source 
 
@@ -242,6 +249,11 @@ FROM employee_mysql;
 
 ![Flink Job Server](https://github.com/kkpant75/MysqlToMongoFlinkCDC/blob/main/images/FlinkPortal.png)
 # Mysql To MongoDB Batch Process
+Get Inside `flink-jobmanager` container using below command
+```
+docker exec -it flink-jobmanager bash
+```
+### Steps
 ```
 # Create MYSQL Flink Source
 CREATE TABLE employee_mysql (
@@ -277,6 +289,11 @@ FROM employee_mysql;
 ```
 
 # Mysql To MongoDB CDC Process
+Get Inside `flink-jobmanager` container using below command
+```
+docker exec -it flink-jobmanager bash
+```
+### Steps
 ```
 # Create MYSQL Flink Source
 CREATE TABLE employee_mysql_cdc (
@@ -314,6 +331,16 @@ INSERT INTO employee_mongodb_cdc
 SELECT id AS idren, name, department, salary
 FROM employee_mysql_cdc;
 ```
+
+# Using Python Job for CDC
+Run Flink Python Job with below command
+
+```
+docker exec -it flink-jobmanager bash -c "cd /opt/flink/usrlib && bash"
+
+/opt/flink/usrlib# flink run -py flink_mymon_cdc.py
+```
+
 # List of jars Need to Downlaod
 - **Mongodb**
 ```
@@ -338,3 +365,4 @@ FROM employee_mysql_cdc;
     flink-connector-kafka-1.17.0.jar
     kafka-clients-3.3.1.jar
 ```
+
