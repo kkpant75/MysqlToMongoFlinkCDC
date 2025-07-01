@@ -371,7 +371,7 @@ docker exec -it flink-jobmanager bash -c "cd /opt/flink/usrlib && bash"
 
 ## Required Additional Sql Previledges For Source and Sink Via Kafka Topics
 
-**Execute This Query In SQL Befor Starting Any of the Below Steps.**
+**Execute Below Queries In SQL Before Starting Any of the Below Steps.**
 
 ***
 GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ,**RELOAD,FLUSH_TABLES** ON *.* TO 'user';
