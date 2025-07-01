@@ -370,13 +370,15 @@ docker exec -it flink-jobmanager bash -c "cd /opt/flink/usrlib && bash"
 # Kafka Sink Mysql To MongoDB
 
 ## Required Additional Sql Previledges For Source and Sink Via Kafka Topics
-```
-Execite Below Query In SQL
-```
-GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ,**RELOAD,FLUSH_TABLES** ON *.* TO 'user' 
+
+**Execute This Query In SQL Befor Starting Any of the Below Steps.**
+
+***
+GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ,**RELOAD,FLUSH_TABLES** ON *.* TO 'user';
+
 FLUSH PRIVILEGES;
 
-
+****
 ## Mysql Source Topic For COMPANY->EMPLOYEE Table
 
 ```
