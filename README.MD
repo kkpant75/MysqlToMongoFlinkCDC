@@ -379,8 +379,7 @@ GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ,**RELOAD,FL
 FLUSH PRIVILEGES;
 
 ****
-## Mysql Source Topic For COMPANY->EMPLOYEE Table
-
+## Mysql Source Topic For COMPANY->EMPLOYEE Table (Execute Using Postman Or Curl)
 ```
 curl --location 'http://localhost:8083/connectors/' \
 --header 'Content-Type: application/json' \
@@ -412,7 +411,7 @@ mysql_server.company.employee
 **
 ```
 
-## Validate With this command
+## Validate Above Action By Executing Below Command in `kafkae2e`
 ```
 sh-4.4$ kafka-topics --bootstrap-server localhost:9092 --list
 __consumer_offsets
@@ -424,7 +423,7 @@ mysql_server
 mysql_server.company.employee
 ```
 
-## Mongo Synk Topic
+## Create Mongo Sink (Execute Using Postman Or Curl)
 ```
 curl --location 'http://localhost:8083/connectors/' \
 --header 'Content-Type: application/json' \
@@ -510,7 +509,9 @@ kafka_mongo_sink_db> db.employee_sink.find()
 ]
 ```
 
-# Flink Transformation To Modify Uppecase Execute below python code by logging in  `flink-jobmanager`
+# Flink Transformation To Modify Kafka Topic Data in Uppecase 
+
+### Execute below python code by logging in  `flink-jobmanager`
 ```
 root@7b784b2fd190:/opt/flink/usrlib# python uppecaseFlink.py
 
