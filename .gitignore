@@ -1,3 +1,4 @@
 flink-app/*.jar
 jars/*.jar
 plugins/*.*
+*.jar

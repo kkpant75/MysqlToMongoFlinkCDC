@@ -57,7 +57,7 @@ env.set_parallelism(1)
 # Kafka source
 source = KafkaSource.builder() \
     .set_bootstrap_servers("kafkae2e:9092") \
-    .set_topics("mysql_server.testdb.users") \
+    .set_topics("mysql_server.company.employee") \
     .set_group_id("flink-upper-group") \
     .set_value_only_deserializer(SimpleStringSchema()) \
     .build()

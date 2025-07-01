@@ -35,7 +35,7 @@ CREATE TABLE employee_mongodb_cdc (
   'uri' = 'mongodb://mongoe2e:27017',
   'database' = 'company',
   'collection' = 'employee'
-)
+);
 """)
 
 

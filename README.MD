@@ -366,3 +366,213 @@ docker exec -it flink-jobmanager bash -c "cd /opt/flink/usrlib && bash"
     kafka-clients-3.3.1.jar
 ```
 
+
+# Kafka Sink Mysql To MongoDB
+
+## Required Additional Sql Previledges For Source Sink in Via Kafka Topics
+
+GRANT SELECT, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ,**RELOAD,FLUSH_TABLES** ON *.* TO 'user' 
+FLUSH PRIVILEGES;
+
+## Mysql Source Topic For COMPANY->EMPLOYEE Table
+
+```
+curl --location 'http://localhost:8083/connectors/' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "mysql-source",
+    "config": {
+      "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+      "database.hostname": "mysqle2e",
+      "database.port": "3306",
+      "database.user": "user",
+      "database.password": "password",
+      "database.server.id": "223344",
+      "topic.prefix": "mysql_server",
+      "database.include.list": "company",
+      "table.include.list": "company.employee",
+      "schema.history.internal.kafka.bootstrap.servers": "kafkae2e:9092",
+      "schema.history.internal.kafka.topic": "dbhistory.fullfillment"
+    }
+  }'
+  ```
+
+### Output
+```
+This Post Operation will create a topic 
+**
+dbhistory.fullfillment
+mysql_server
+mysql_server.company.employee
+**
+```
+
+## Validate With this command
+```
+sh-4.4$ kafka-topics --bootstrap-server localhost:9092 --list
+__consumer_offsets
+connect-configs
+connect-offsets
+connect-status
+dbhistory.fullfillment
+mysql_server
+mysql_server.company.employee
+```
+
+## Mongo Synk Topic
+```
+curl --location 'http://localhost:8083/connectors/' \
+--header 'Content-Type: application/json' \
+--data '{
+  "name": "mongo-sink-connector",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "tasks.max": "1",
+    "topics": "mysql_server.company.employee",              
+    "connection.uri": "mongodb://mongoe2e:27017",
+    "database": "kafka_mongo_sink_db",
+    "collection": "employee_sink",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "writemodel.strategy": "com.mongodb.kafka.connect.sink.writemodel.strategy.ReplaceOneBusinessKeyStrategy",
+    "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy",
+    "document.id.strategy.overwrite.existing": "true",
+    "document.id.strategy.partial.value.projection.list": "id",
+    "document.id.strategy.partial.value.projection.type": "AllowList"
+  }
+}'
+```
+
+
+## Check Kafka Console Conssumer for any CDC changes reflecting in the topic `mysql_server.company.employee`
+```
+kafka-console-consumer   --bootstrap-server kafkae2e:9092   --topic mysql_server.company.employee   --from-beginning
+```
+
+## Check Mongo Database if data is recieved in the *<kafka_mongo_sink_db.employee_sink>*  by visiting mongo shell
+
+
+```
+company> show databases;
+admin                40.00 KiB
+company              72.00 KiB
+config               72.00 KiB
+kafka_mongo_sink_db  40.00 KiB
+local                72.00 KiB
+```
+```
+company> use kafka_mongo_sink_db
+switched to db kafka_mongo_sink_db
+```
+```
+kafka_mongo_sink_db> show collections
+employee_sink
+```
+```
+kafka_mongo_sink_db> db.employee_sink.find()
+[
+  {
+    _id: ObjectId('68637958b360b729d981c6a0'),
+    op: 'c',
+    before: null,
+    after: {
+      name: 'Alice1',
+      id: Long('11111'),
+      department: 'HR1',
+      salary: 510000
+    },
+    source: {
+      query: null,
+      thread: Long('510'),
+      server_id: Long('223344'),
+      version: '2.5.1.Final',
+      sequence: null,
+      file: 'mysql-bin.000005',
+      connector: 'mysql',
+      pos: Long('6954'),
+      name: 'mysql_server',
+      gtid: null,
+      row: Long('0'),
+      ts_ms: Long('1751349862000'),
+      snapshot: 'false',
+      db: 'company',
+      table: 'employee'
+    },
+    ts_ms: Long('1751349862169'),
+    transaction: null
+  }
+]
+```
+
+# Flink Transformation To Modify Uppecase Execute below python code by logging in  `flink-jobmanager`
+```
+root@7b784b2fd190:/opt/flink/usrlib# python uppecaseFlink.py
+
+Original Record: {'before': None, 'after': {'id': 11, 'name': 'Alice', 'department': 'HR', 'salary': 50000.0}, 'source': {'version': '2.5.1.Final', 'connector': 'mysql', 'name': 'mysql_server', 'ts_ms': 1751348862000, 'snapshot': 'first', 'db': 'company', 'sequence': None, 'table': 'employee', 'server_id': 0, 'gtid': None, 'file': 'mysql-bin.000005', 'pos': 6410, 'row': 0, 'thread': None, 'query': None}, 'op': 'r', 'ts_ms': 1751348862494, 'transaction': None}
+```
+
+## 
+```
+kafka_mongo_sink_db> use upperdb
+switched to db upperdb
+```
+```
+upperdb> show collections
+uppercollection
+```
+```
+upperdb> db.uppercollection.find()
+[
+  {
+    _id: ObjectId('68638026bb33a3e92bfdfea0'),
+    before: null,
+    after: { id: 11, name: 'ALICE', department: 'HR', salary: 50000 },
+    source: {
+      version: '2.5.1.Final',
+      connector: 'mysql',
+      name: 'mysql_server',
+      ts_ms: Long('1751348862000'),
+      snapshot: 'first',
+      db: 'company',
+      sequence: null,
+      table: 'employee',
+      server_id: 0,
+      gtid: null,
+      file: 'mysql-bin.000005',
+      pos: 6410,
+      row: 0,
+      thread: null,
+      query: null
+    },
+    op: 'r',
+    ts_ms: Long('1751348862494'),
+    transaction: null
+  },
+  {
+    _id: ObjectId('68638026bb33a3e92bfdfea1'),
+    before: null,
+    after: { id: 111, name: 'ALICE', department: 'HR', salary: 50000 },
+    source: {
+      version: '2.5.1.Final',
+      connector: 'mysql',
+      name: 'mysql_server',
+      ts_ms: Long('1751348862000'),
+      snapshot: 'true',
+      db: 'company',
+      sequence: null,
+      table: 'employee',
+      server_id: 0,
+      gtid: null,
+      file: 'mysql-bin.000005',
+      pos: 6410,
+      row: 0,
+      thread: null,
+      query: null
+    },
+    op: 'r',
+    ts_ms: Long('1751348862501'),
+    transaction: null
+  }
+  ]
+```
