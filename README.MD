@@ -582,3 +582,9 @@ upperdb> db.uppercollection.find()
   }
   ]
 ```
+
+# Run Java Code using this command
+
+```
+flink run -c AccountEnrichmentJob FlinkMyMg-0.0.1-SNAPSHOT.jar
+```
